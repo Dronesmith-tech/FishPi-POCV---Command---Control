@@ -7,47 +7,31 @@ import logging
 from math import atan2, sqrt, sin, cos, pi
 from math import pow as fpow
 
-from Adafruit_LSM303 import Adafruit_LSM303
+# import hw_platform
+from dronekit import *
+
+#from Adafruit_LSM303 import Adafruit_LSM303
 
 
 class Compass(object):
 
-    def __init__(self, interface="", hw_interface="-1", debug=False,
+    def __init__(self, interface="", fmu=Vehicle, hw_interface="-1", debug=False,
             hires="False"):
         if debug:
             logging.basicConfig(level=logging.DEBUG)
-        self.device_handler = Adafruit_LSM303(busnum=int(hw_interface), debug=debug)
+        self.device_handler = fmu
+
+        print "[IMU] VERIFICATION TEST."
+        print self.read_sensor()
 
     def tear_down(self):
         logging.info("COMP:\tTear-down complete, " +
                 "nothing to be done.")
 
     def read_sensor(self):
-        # Split and return only compass data
-        data = self.device_handler.read()
-
-        ((x_a, y_a, z_a), (x_m, y_m, z_m, or_)) = data
-        # logging.info("Compass:\tX: %f, Y: %f, Z: %f" % (x_m, y_m, z_m))
-
-        # Test
-        # heading = (atan2(y_m, x_m)*180)/pi
-        # if heading < 0:
-        #     heading = 360 + heading
-        # print("testheading: %F" % heading)
-
-        # Calculate roll and pitch in radians
-        pitch_r = atan2(x_a, sqrt(fpow(y_a, 2) + fpow(z_a, 2)))
-        roll_r = atan2(y_a, z_a)
-
-        x_h = x_a * cos(pitch_r) + z_m * sin(pitch_r)
-        y_h = ((x_m * sin(roll_r) * sin(pitch_r)) + (y_m * cos(roll_r)) -
-            (z_m * sin(roll_r) * cos(pitch_r)))
-        heading = (atan2(y_h, x_h)*180)/pi
-        if y_h < 0:
-            heading = 360 + heading
-
-        pitch = pitch_r * 180 / pi
-        roll = roll_r * 180 / pi
+        heading = self.device_handler.attitude.yaw * (180.0 / 3.14159)
+        pitch = self.device_handler.attitude.pitch * (180.0 / 3.14159)
+        roll = self.device_handler.attitude.roll * (180.0 / 3.14159)
 
         return heading, pitch, roll
 

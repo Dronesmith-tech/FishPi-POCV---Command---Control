@@ -22,6 +22,7 @@ import os
 import sys
 import logging
 import argparse
+import time
 
 import ui.controller
 from core_kernel import FishPiKernel
@@ -113,14 +114,17 @@ class FishPi:
             kernel = FishPiKernel(self.config, debug=self.debug)
 
             # run ui loop
-            logging.info("FISHPI:\tLaunching UI...")
-            ui.controller.run_main_view_tk(kernel)
+            #logging.info("FISHPI:\tLaunching UI...")
+            #ui.controller.run_main_view_tk(kernel)
             logging.info("FISHPI:\tProgram complete - exiting.")
         else:
             # run ui loop
-            logging.info("FISHPI:\tLaunching UI...")
-            ui.controller.run_main_view_wx(self.config)
+            #logging.info("FISHPI:\tLaunching UI...")
+            #ui.controller.run_main_view_wx(self.config)
             logging.info("FISHPI:\tProgram complete - exiting.")
+
+        while True:
+            time.sleep(1)
         # done
         return 0
 

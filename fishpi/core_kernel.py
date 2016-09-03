@@ -19,6 +19,7 @@ from localconfig import FishPiConfig
 from model_data import POCVModelData
 from control.navigation import NavigationUnit
 from perception.world import PerceptionUnit
+from dronekit import *
 
 
 class FishPiKernel:
@@ -27,6 +28,8 @@ class FishPiKernel:
     def __init__(self, config, debug=False):
         self.config = config
         self.debug = debug
+
+        self._fmu = None
 
         # pull over all hw devices (or proxies) from config
 
@@ -138,8 +141,8 @@ class FishPiKernel:
     #     self._camera_controller.stop_image_capture()
 
     # @property
-    # def last_img(self):
-    #     return self._camera_controller.last_img
+    #def last_img(self):
+    #    return self._camera_controller.last_img
 
     # Sensors
 

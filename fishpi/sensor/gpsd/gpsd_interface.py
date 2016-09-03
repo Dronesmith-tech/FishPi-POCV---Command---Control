@@ -10,13 +10,12 @@ import hw_platform.hw_config as hw_config
 if hw_config.platform == 'BBB':
     import Adafruit_BBIO.UART as UART
 
-import gps
 import os
-import psutil
 import serial
 from subprocess import call
 import logging
 
+from dronekit import *
 
 class GPSDError(Exception):
     """Exception indicating that an error occured while working with GPSD"""
@@ -25,7 +24,7 @@ class GPSDError(Exception):
 
 class gpsdInterface():
 
-    def __init__(self, interface="UART4", hw_interface="/dev/ttyO4",
+    def __init__(self, interface="UART4", fmu=Vehicle, hw_interface="/dev/ttyO4",
             debug=False):
         if debug:
             logging.basicConfig(level=logging.DEBUG)
@@ -33,6 +32,7 @@ class gpsdInterface():
         self.uart = interface
         self.tty = hw_interface
         self.num_sat = 0
+        self.dev = fmu
 
         # Default answer. Defined here to include num_sat
         self.default_return = (
@@ -47,6 +47,9 @@ class gpsdInterface():
             "")     # datestamp
 
         self.latest_return = self.default_return
+
+        print "[GPS] VERIFICATION TEST."
+        print self.read_sensor()
 
         if hw_config.platform is None:
             logging.error("GPSD Interface:\tHardware platform is not " +
@@ -63,10 +66,10 @@ class gpsdInterface():
             pass  # nothing to be done here
 
         # stop gpsd if it is running
-        self.stop_gpsd()
+        #self.stop_gpsd()
 
-        call(["gpsd", self.tty])
-        self.session = gps.gps(mode=gps.WATCH_ENABLE)
+        #call(["gpsd", self.tty])
+        #self.session = gps.gps(mode=gps.WATCH_ENABLE)
         logging.info("GPSD:\tInitialization complete.")
 
     # This is untested!!
@@ -123,31 +126,23 @@ class gpsdInterface():
     def read_sensor(self):
         """Read the newest data from gpsd and return a formatted version.
             Not active right now."""
-        data = self.read_raw_gpsd_data()
+        data = self.dev.gps_0
+
         if data is None:
             return self.latest_return
-
-        if data['class'] == 'TPV':
-            if data.get('mode') == 1:  # really a number, not a string?
-                return self.default_return
-            else:
-                self.latest_return = (
-                    data.get('mode'),
-                    data.get('lat'),
-                    data.get('lon'),
-                    data.get('track'),
-                    data.get('speed'),
-                    self.num_sat,
-                    data['time'].split('T')[1],
-                    data['time'].split('T')[2])
-                return self.latest_return
-        elif data['class'] == 'SKY':
-            if 'satellites' in data.keys():
-                self.num_sat = len(data['satellites'])
-            else:
-                self.num_sat = 0
         else:
-            return self.latest_return
+            self.latest_return = (
+                0,
+                data.eph,
+                data.epv,
+                0,
+                0,
+                data.satellites_visible,
+                0,
+                0
+            )
+
+        return self.latest_return
 
 
 if __name__ == "__main__":

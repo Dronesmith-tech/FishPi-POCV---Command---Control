@@ -129,12 +129,16 @@ class FishPiConfig(object):
             connected devices are specified. The resources are imported
             dynamically and the device drivers are set up. """
 
-        # only configure devices for Linux
-        if not(platform.system() == "Linux"):
-            logging.info("CFG:\tNot running on Linux distro. " +
-                "Not configuring i2c or other devices.")
-            self._set_dummy_devices()
+        device_conf = self.load_config_file('devices.conf')
+        if device_conf is None:
             return False
+
+        # only configure devices for Linux
+        # if not(platform.system() == "Linux"):
+        #     logging.info("CFG:\tNot running on Linux distro. " +
+        #         "Not configuring i2c or other devices.")
+        #     self._set_dummy_devices()
+        #     return False
 
         device_conf = self.load_config_file('devices.conf')
         if device_conf is None:
@@ -270,6 +274,7 @@ class FishPiConfig(object):
         return platform_support_class()
 
     def _load_device_drivers(self, device_conf, debug=False):
+        # print self.platform_support.getFmu().heading
         # Iterate through devices
         for k in device_conf.keys():
             if not device_conf[k]['interface'] in self.hardware_model:
@@ -292,7 +297,7 @@ class FishPiConfig(object):
                 # Get device driver handle and pass the params
                 try:
                     device_handle = device_class(
-                        debug=debug,
+                        debug=debug, fmu=self.platform_support.getFmu(),
                         **(self._create_device_params(device_conf[k])))
                 except Exception, e:
                     logging.error(("CGF:\tError while configuring %s: %s. " +
